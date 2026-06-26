@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d0221">
+<meta name="description" content="Anti-Bullying Runner v2.0 Ultra — Endless Runner educativo estilo Subway Surfers sobre prevenção ao bullying.">
+<title>Anti-Bullying Runner v2.0 Ultra</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="arcade" data-lang="pt">
+
+<!-- Barra global: mute / fullscreen — visível em todas as telas exceto loading -->
+<div id="global-toolbar" class="global-toolbar hidden" aria-hidden="false">
+  <button id="btn-mute" class="icon-btn" type="button" aria-label="Silenciar áudio" data-state="unmuted">
+    <span class="icon-on">🔊</span>
+    <span class="icon-off">🔇</span>
+  </button>
+  <button id="btn-fullscreen" class="icon-btn" type="button" aria-label="Tela cheia">
+    <span class="icon-on">⛶</span>
+  </button>
+</div>
+
+<div id="app" class="app-root">
+
+  <!-- ============================================================
+       TELA: LOADING
+       ============================================================ -->
+  <div id="screen-loading" class="screen screen-loading active">
+    <div class="loading-bg-layer">
+      <div class="layer-stars"></div>
+    </div>
+    <div class="loading-content">
+      <div class="game-logo">
+        <div class="logo-line-1" data-i18n="menu.title.line1">ANTI-BULLYING</div>
+        <div class="logo-line-2" data-i18n="menu.title.line2">RUNNER</div>
+        <div class="logo-version">v2.0 ULTRA</div>
+      </div>
+      <div class="loading-bar-track" role="progressbar" id="loading-progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="loading-bar-fill" class="loading-bar-fill"></div>
+      </div>
+      <div id="loading-bar-percent" class="loading-status">0%</div>
+      <div id="loading-tip" class="loading-tip"></div>
+      <div id="loading-status" class="loading-status"></div>
+      <div class="loading-credits" data-i18n="loading.credits"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TELA: MENU PRINCIPAL
+       ============================================================ -->
+  <div id="screen-menu" class="screen screen-menu hidden">
+    <div class="menu-topbar">
+      <div class="player-badge">
+        <div class="player-avatar" id="menu-player-avatar">🛡️</div>
+        <div class="player-info">
+          <div class="player-name" id="menu-player-name">Jogador</div>
+          <div class="player-level" id="menu-player-level">Nível 1</div>
+        </div>
+        <button class="edit-name-btn" id="btn-edit-name" aria-label="Editar nome">✏️</button>
+      </div>
+      <div class="currency-bar">
+        <div class="currency-chip">
+          <span>🪙</span>
+          <span id="menu-coins-amount">0</span>
+        </div>
+        <div class="currency-chip">
+          <span>💎</span>
+          <span id="menu-gems-amount">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-hero">
+      <div class="menu-title">
+        <div class="menu-title-line1" data-i18n="menu.title.line1">ANTI-BULLYING</div>
+        <div class="menu-title-line2" data-i18n="menu.title.line2">RUNNER</div>
+      </div>
+      <div class="menu-subtitle" data-i18n="menu.subtitle">Corra. Decida. Faça a diferença.</div>
+      <div class="menu-xp-block">
+        <div class="xp-bar-track">
+          <div id="menu-xp-fill" class="xp-bar-fill"></div>
+        </div>
+        <div id="menu-xp-label" class="xp-label">0 / 100 XP</div>
+      </div>
+    </div>
+
+    <div class="menu-buttons">
+      <button id="btn-play" class="menu-btn menu-btn-primary">
+        <span class="menu-btn-icon">🏃</span>
+        <span data-i18n="menu.play">JOGAR</span>
+      </button>
+      <button id="btn-shop" class="menu-btn">
+        <span class="menu-btn-icon">🛒</span>
+        <span data-i18n="menu.shop">LOJA</span>
+      </button>
+      <button id="btn-ranking" class="menu-btn">
+        <span class="menu-btn-icon">🏆</span>
+        <span data-i18n="menu.ranking">TOP RUN</span>
+      </button>
+      <button id="btn-settings" class="menu-btn">
+        <span class="menu-btn-icon">⚙️</span>
+        <span data-i18n="menu.settings">CONFIGURAÇÕES</span>
+      </button>
+      <button id="btn-howto" class="menu-btn menu-btn-ghost">
+        <span class="menu-btn-icon">❓</span>
+        <span data-i18n="menu.howto">COMO JOGAR</span>
+      </button>
+    </div>
+
+    <div class="menu-footer" data-i18n="menu.footer">v2.0 ULTRA — Movimente-se, decida com empatia.</div>
+  </div>
+
+  <!-- ============================================================
+       TELA: JOGO
+       ============================================================ -->
+  <div id="screen-game" class="screen hidden">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD topo -->
+    <div class="hud-top">
+      <div id="hud-lives" class="hud-lives">
+        <span class="heart" data-heart="1">❤️</span>
+        <span class="heart" data-heart="2">❤️</span>
+        <span class="heart" data-heart="3">❤️</span>
+      </div>
+      <div class="hud-score-block">
+        <span class="hud-score-label" data-i18n="game.score">PONTOS</span>
+        <span id="hud-score" class="hud-score-value">0</span>
+      </div>
+      <button id="btn-pause" class="hud-pause-btn" aria-label="Pausar">⏸</button>
+    </div>
+
+    <!-- HUD moeda / gema / nível -->
+    <div class="hud-currency">
+      <div class="hud-chip">
+        <span class="hud-chip-icon">🪙</span>
+        <span id="hud-coins">0</span>
+      </div>
+      <div class="hud-chip">
+        <span class="hud-chip-icon">💎</span>
+        <span id="hud-gems">0</span>
+      </div>
+      <div class="hud-chip">
+        <span class="hud-chip-icon">⭐</span>
+        <span id="hud-level">1</span>
+      </div>
+    </div>
+
+    <!-- Indicadores de power ativo -->
+    <div class="powerup-indicators">
+      <div class="powerup-indicator" data-power="shield" hidden>
+        <span>🛡️</span>
+        <svg class="powerup-ring" viewBox="0 0 36 36">
+          <circle class="powerup-ring-bg" cx="18" cy="18" r="15.9"/>
+          <circle class="powerup-ring-fg" data-ring="shield" cx="18" cy="18" r="15.9" style="--pct:1"/>
+        </svg>
+      </div>
+      <div class="powerup-indicator" data-power="speed" hidden>
+        <span>⚡</span>
+        <svg class="powerup-ring" viewBox="0 0 36 36">
+          <circle class="powerup-ring-bg" cx="18" cy="18" r="15.9"/>
+          <circle class="powerup-ring-fg" data-ring="speed" cx="18" cy="18" r="15.9" style="--pct:1"/>
+        </svg>
+      </div>
+      <div class="powerup-indicator" data-power="magnet" hidden>
+        <span>🧲</span>
+        <svg class="powerup-ring" viewBox="0 0 36 36">
+          <circle class="powerup-ring-bg" cx="18" cy="18" r="15.9"/>
+          <circle class="powerup-ring-fg" data-ring="magnet" cx="18" cy="18" r="15.9" style="--pct:1"/>
+        </svg>
+      </div>
+      <div class="powerup-indicator" data-power="slow" hidden>
+        <span>🌀</span>
+        <svg class="powerup-ring" viewBox="0 0 36 36">
+          <circle class="powerup-ring-bg" cx="18" cy="18" r="15.9"/>
+          <circle class="powerup-ring-fg" data-ring="slow" cx="18" cy="18" r="15.9" style="--pct:1"/>
+        </svg>
+      </div>
+      <div class="powerup-indicator" data-power="jetpack" hidden>
+        <span>🚀</span>
+        <svg class="powerup-ring" viewBox="0 0 36 36">
+          <circle class="powerup-ring-bg" cx="18" cy="18" r="15.9"/>
+          <circle class="powerup-ring-fg" data-ring="jetpack" cx="18" cy="18" r="15.9" style="--pct:1"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Barra XP inferior -->
+    <div class="hud-xp-wrap">
+      <div class="xp-bar-track">
+        <div id="hud-xp-fill" class="xp-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- Botões de power (touch/mobile) -->
+    <div class="touch-power-bar">
+      <button class="touch-power-btn" data-key="Space" aria-label="Escudo">🛡️</button>
+      <button class="touch-power-btn" data-key="KeyQ" aria-label="Velocidade">⚡</button>
+      <button class="touch-power-btn" data-key="KeyE" aria-label="Ímã">🧲</button>
+      <button class="touch-power-btn" data-key="KeyR" aria-label="Lentidão">🌀</button>
+      <button class="touch-power-btn" data-key="KeyF" aria-label="Jetpack">🚀</button>
+    </div>
+
+    <!-- Camada de swipe (touch) -->
+    <div id="touch-swipe-layer" class="touch-swipe-layer"></div>
+
+    <!-- Textos flutuantes -->
+    <div id="floating-toast-layer" class="floating-toast-layer"></div>
+
+    <!-- Toast level up -->
+    <div id="toast-levelup" class="toast hidden">
+      <span id="toast-levelup-text"></span>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TELA: COMO JOGAR
+       ============================================================ -->
+  <div id="screen-howto" class="screen screen-content hidden">
+    <div class="screen-header">
+      <button id="btn-howto-back" class="btn-back">←</button>
+      <h2 data-i18n="howto.title">Como Jogar</h2>
+    </div>
+    <div class="screen-scroll-content">
+      <section class="howto-section">
+        <h3 data-i18n="howto.movement.title">Movimento</h3>
+        <p data-i18n="howto.movement.desc">Mova-se entre as 3 pistas, pule trens e deslize por baixo de obstáculos.</p>
+        <div class="controls-table">
+          <div class="controls-row"><span>← / A</span><span>Pista esquerda</span></div>
+          <div class="controls-row"><span>→ / D</span><span>Pista direita</span></div>
+          <div class="controls-row"><span>↑ / W</span><span>Pular</span></div>
+          <div class="controls-row"><span>↓ / S</span><span>Deslizar</span></div>
+        </div>
+      </section>
+      <section class="howto-section">
+        <h3 data-i18n="howto.powers.title">Poderes</h3>
+        <ul class="powers-list">
+          <li>🛡️ <span data-i18n="howto.power.shield">Escudo — protege de uma colisão</span> <kbd>Espaço</kbd></li>
+          <li>⚡ <span data-i18n="howto.power.speed">Velocidade — acelera e multiplica XP</span> <kbd>Q</kbd></li>
+          <li>🧲 <span data-i18n="howto.power.magnet">Ímã — atrai moedas e gemas</span> <kbd>E</kbd></li>
+          <li>🌀 <span data-i18n="howto.power.slow">Lentidão — facilita os desvios</span> <kbd>R</kbd></li>
+          <li>🚀 <span data-i18n="howto.power.jetpack">Jetpack — voe sobre as pistas</span> <kbd>F</kbd></li>
+        </ul>
+      </section>
+      <section class="howto-section">
+        <h3 data-i18n="howto.mobile.title">No Celular</h3>
+        <p data-i18n="howto.mobile.desc">Deslize para os lados para trocar de pista, para cima para pular e para baixo para escorregar. Use os botões de poder na tela.</p>
+      </section>
+      <section class="howto-section">
+        <h3 data-i18n="howto.dilemmas.title">Dilemas</h3>
+        <p data-i18n="howto.dilemmas.desc">De tempos em tempos o jogo pausa e mostra uma situação real de bullying. Escolha a atitude mais empática para ganhar XP.</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TELA: LOJA
+       ============================================================ -->
+  <div id="screen-shop" class="screen screen-content hidden">
+    <div class="screen-header">
+      <button id="btn-shop-back" class="btn-back">←</button>
+      <h2 data-i18n="shop.title">Loja</h2>
+      <div class="header-currency">
+        <span>🪙 <span id="shop-coins-amount">0</span></span>
+        <span>💎 <span id="shop-gems-amount">0</span></span>
+      </div>
+    </div>
+    <div class="shop-tabs" role="tablist">
+      <button class="shop-tab active" data-tab="skins" role="tab" aria-selected="true" data-i18n="shop.tab.skins">Vestes</button>
+      <button class="shop-tab" data-tab="powerups" role="tab" aria-selected="false" data-i18n="shop.tab.powerups">Power-ups</button>
+      <button class="shop-tab" data-tab="themes" role="tab" aria-selected="false" data-i18n="shop.tab.themes">Temas</button>
+    </div>
+    <div class="shop-panels">
+      <div id="panel-skins" class="shop-panel active">
+        <div id="shop-grid-skins" class="shop-grid"></div>
+      </div>
+      <div id="panel-powerups" class="shop-panel">
+        <div id="shop-grid-powerups" class="shop-grid"></div>
+      </div>
+      <div id="panel-themes" class="shop-panel">
+        <div id="shop-grid-themes" class="shop-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TELA: CONFIGURAÇÕES
+       ============================================================ -->
+  <div id="screen-settings" class="screen screen-content hidden">
+    <div class="screen-header">
+      <button id="btn-settings-back" class="btn-back">←</button>
+      <h2 data-i18n="settings.title">Configurações</h2>
+    </div>
+    <div class="screen-scroll-content">
+
+      <section class="settings-section">
+        <h3 data-i18n="settings.name.title">Nome do Jogador</h3>
+        <div class="settings-name-row">
+          <input id="input-player-name" type="text" maxlength="16" placeholder="Seu nome" autocomplete="off">
+          <button id="btn-save-name" class="settings-action-btn" data-i18n="settings.name.save">Salvar</button>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h3 data-i18n="settings.lang.title">Idioma</h3>
+        <div id="lang-options" class="settings-options">
+          <button class="settings-option active" data-lang="pt">🇧🇷 Português</button>
+          <button class="settings-option" data-lang="en">🇺🇸 English</button>
+          <button class="settings-option" data-lang="es">🇪🇸 Español</button>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h3 data-i18n="settings.theme.title">Tema Visual</h3>
+        <div id="theme-options" class="settings-options">
+          <button class="settings-option active" data-theme="arcade" data-i18n="settings.theme.arcade">Arcade</button>
+          <button class="settings-option" data-theme="forest" data-i18n="settings.theme.forest">Floresta</button>
+          <button class="settings-option" data-theme="ocean" data-i18n="settings.theme.ocean">Oceano</button>
+          <button class="settings-option" data-theme="sunset" data-i18n="settings.theme.sunset">Pôr do Sol</button>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h3 data-i18n="settings.audio.title">Áudio</h3>
+        <div class="slider-row">
+          <label data-i18n="settings.audio.music">Música</label>
+          <input id="slider-music" type="range" min="0" max="100" value="70">
+        </div>
+        <div class="slider-row">
+          <label data-i18n="settings.audio.sfx">Efeitos Sonoros</label>
+          <input id="slider-sfx" type="range" min="0" max="100" value="80">
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h3 data-i18n="settings.reset.title">Dados</h3>
+        <p class="settings-desc" data-i18n="settings.reset.desc">Apagar todo o progresso salvo neste dispositivo.</p>
+        <button id="btn-reset-data" class="settings-danger-btn" data-i18n="settings.reset.button">Apagar Progresso</button>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TELA: RANKING (TOP RUN)
+       ============================================================ -->
+  <div id="screen-ranking" class="screen screen-content hidden">
+    <div class="screen-header">
+      <button id="btn-ranking-back" class="btn-back">←</button>
+      <h2 data-i18n="ranking.title">Top Run</h2>
+    </div>
+    <div class="screen-scroll-content">
+      <div id="ranking-podium" class="ranking-podium hidden">
+        <div class="podium-entry podium-2">
+          <div class="podium-avatar">🥈</div>
+          <div id="podium-2-name" class="podium-name">—</div>
+          <div id="podium-2-score" class="podium-score">0</div>
+        </div>
+        <div class="podium-entry podium-1">
+          <div class="podium-avatar">🥇</div>
+          <div id="podium-1-name" class="podium-name">—</div>
+          <div id="podium-1-score" class="podium-score">0</div>
+        </div>
+        <div class="podium-entry podium-3">
+          <div class="podium-avatar">🥉</div>
+          <div id="podium-3-name" class="podium-name">—</div>
+          <div id="podium-3-score" class="podium-score">0</div>
+        </div>
+      </div>
+      <div id="ranking-empty" class="ranking-empty hidden" data-i18n="ranking.empty">Ninguém correu ainda.</div>
+      <div id="ranking-list" class="ranking-list"></div>
+    </div>
+  </div>
+
+</div><!-- /#app -->
+
+<!-- ============================================================
+     MODAIS
+     ============================================================ -->
+
+<!-- Modal: Login / nome -->
+<div id="modal-login" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box">
+    <h2 data-i18n="login.title">Bem-vindo(a)!</h2>
+    <p data-i18n="login.desc">Como podemos te chamar nesta corrida?</p>
+    <input id="input-login-name" type="text" maxlength="16" autocomplete="off" placeholder="Seu nome">
+    <button id="btn-login-confirm" data-i18n="login.confirm">Começar</button>
+  </div>
+</div>
+
+<!-- Modal: Dilema -->
+<div id="modal-dilemma" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box modal-box-dilemma">
+    <div class="dilemma-tag" id="dilemma-category" data-i18n="dilemma.tag">DILEMA</div>
+    <div class="dilemma-icon" id="dilemma-icon">❓</div>
+    <h2 id="dilemma-title">Título</h2>
+    <p id="dilemma-text" class="dilemma-text">Texto do dilema</p>
+    <div id="dilemma-options" class="dilemma-options"></div>
+    <div id="dilemma-feedback" class="dilemma-feedback hidden">
+      <p id="dilemma-feedback-text"></p>
+      <p id="dilemma-feedback-xp" class="dilemma-feedback-xp"></p>
+    </div>
+    <button id="btn-dilemma-continue" class="modal-primary-btn" data-i18n="dilemma.continue">Continuar Corrida</button>
+  </div>
+</div>
+
+<!-- Modal: Pausa -->
+<div id="modal-pause" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box">
+    <h2 data-i18n="pause.title">Pausado</h2>
+    <button id="btn-resume" class="modal-primary-btn" data-i18n="pause.resume">Continuar</button>
+    <button id="btn-restart" class="modal-secondary-btn" data-i18n="pause.restart">Reiniciar</button>
+    <button id="btn-pause-settings" class="modal-secondary-btn" data-i18n="pause.settings">Configurações</button>
+    <button id="btn-pause-exit" class="modal-ghost-btn" data-i18n="pause.exit">Sair para o Menu</button>
+  </div>
+</div>
+
+<!-- Modal: Game Over -->
+<div id="modal-gameover" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box">
+    <h2 data-i18n="gameover.title">Fim de Jogo</h2>
+    <div class="gameover-stats">
+      <div class="gameover-stat">
+        <span data-i18n="gameover.score">Pontuação</span>
+        <strong id="gameover-score">0</strong>
+      </div>
+      <div class="gameover-stat">
+        <span data-i18n="gameover.xp">XP Ganho</span>
+        <strong id="gameover-xp">0</strong>
+      </div>
+      <div class="gameover-stat">
+        <span data-i18n="gameover.coins">Moedas</span>
+        <strong id="gameover-coins">0</strong>
+      </div>
+      <div class="gameover-stat">
+        <span data-i18n="gameover.gems">Gemas</span>
+        <strong id="gameover-gems">0</strong>
+      </div>
+    </div>
+    <div id="gameover-newrecord" class="gameover-newrecord hidden" data-i18n="gameover.newrecord">🎉 Novo Recorde!</div>
+    <button id="btn-gameover-retry" class="modal-primary-btn" data-i18n="gameover.retry">Correr de Novo</button>
+    <button id="btn-gameover-menu" class="modal-ghost-btn" data-i18n="gameover.menu">Voltar ao Menu</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     TEMPLATES
+     ============================================================ -->
+
+<template id="template-shop-card">
+  <div class="shop-card">
+    <div class="shop-card-icon"></div>
+    <div class="shop-card-name"></div>
+    <div class="shop-card-desc"></div>
+    <button class="shop-card-buy">
+      <span class="buy-icon"></span>
+      <span class="buy-price"></span>
+    </button>
+  </div>
+</template>
+
+<template id="template-dilemma-option">
+  <button class="dilemma-option-btn"></button>
+</template>
+
+<template id="template-ranking-row">
+  <div class="ranking-row">
+    <span class="ranking-position"></span>
+    <span class="ranking-name"></span>
+    <span class="ranking-level"></span>
+    <span class="ranking-score"></span>
+  </div>
+</template>
+
+<!-- game.js contém todo o motor do jogo -->
+<script src="game.js" defer></script>
+<!-- script.js: PWA, service worker e extensões (carregado após game.js) -->
+<script src="script.js" defer></script>
+
+</body>
+</html>
